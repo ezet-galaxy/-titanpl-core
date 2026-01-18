@@ -1,0 +1,22 @@
+[package]
+name = "titan-core"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.4", features = ["v4", "fast-rng"] }
+sha2 = "0.10"
+md-5 = "0.10"
+base64 = "0.21"
+rand = "0.8"
+sys-info = "0.9"
+chrono = "0.4"
+dns-lookup = "2.0"
+local-ip-address = "0.5"
+whoami = "1.4"
+hex = "0.4"

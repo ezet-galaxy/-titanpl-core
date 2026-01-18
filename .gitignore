@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build artifacts
+native/target/
+*.dll
+*.so
+*.dylib
+
+# Titan test environment
+.titan_test_run/
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Lock files (optional - uncomment if you want to exclude)
+# package-lock.json
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.*.local

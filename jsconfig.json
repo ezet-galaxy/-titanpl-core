@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "CommonJS",
+        "allowSyntheticDefaultImports": true,
+        "checkJs": false
+    },
+    "exclude": [
+        "node_modules",
+        "native"
+    ]
+}
