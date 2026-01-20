@@ -142,6 +142,8 @@ const native_ls_remove = natives.ls_remove;
 const native_ls_clear = natives.ls_clear;
 const native_ls_keys = natives.ls_keys;
 
+
+
 const native_session_get = natives.session_get;
 const native_session_set = natives.session_set;
 const native_session_delete = natives.session_delete;
@@ -341,14 +343,38 @@ const buffer = {
 // --- Local Storage ---
 /** Persistent Local Storage */
 const ls = {
-    get: (key) => native_ls_get ? native_ls_get(key) || null : null,
-    set: (key, value) => native_ls_set && native_ls_set(key, value),
-    remove: (key) => native_ls_remove && native_ls_remove(key),
-    clear: () => native_ls_clear && native_ls_clear(),
-    keys: () => {
-        if (!native_ls_keys) return [];
+    get: (key) => {
         try {
-            return JSON.parse(native_ls_keys());
+            const content = fs.readFile("titan_storage.json");
+            const db = JSON.parse(content || "{}");
+            return db[key] || null;
+        } catch (e) { return null; }
+    },
+    set: (key, value) => {
+        try {
+            let db = {};
+            try { db = JSON.parse(fs.readFile("titan_storage.json") || "{}"); } catch (e) { }
+            db[key] = String(value);
+            fs.writeFile("titan_storage.json", JSON.stringify(db));
+        } catch (e) { }
+    },
+    remove: (key) => {
+        try {
+            let db = {};
+            try { db = JSON.parse(fs.readFile("titan_storage.json") || "{}"); } catch (e) { }
+            delete db[key];
+            fs.writeFile("titan_storage.json", JSON.stringify(db));
+        } catch (e) { }
+    },
+    clear: () => {
+        try {
+            fs.writeFile("titan_storage.json", "{}");
+        } catch (e) { }
+    },
+    keys: () => {
+        try {
+            let db = JSON.parse(fs.readFile("titan_storage.json") || "{}");
+            return Object.keys(db);
         } catch (e) { return []; }
     }
 };
@@ -356,10 +382,41 @@ const ls = {
 // --- Sessions ---
 /** Server-side Session Management */
 const session = {
-    get: (sessionId, key) => native_session_get ? native_session_get(sessionId, key) || null : null,
-    set: (sessionId, key, value) => native_session_set && native_session_set(sessionId, JSON.stringify({ key, value })),
-    delete: (sessionId, key) => native_session_delete && native_session_delete(sessionId, key),
-    clear: (sessionId) => native_session_clear && native_session_clear(sessionId)
+    get: (sessionId, key) => {
+        try {
+            const content = fs.readFile("titan_sessions.json");
+            const db = JSON.parse(content || "{}");
+            const sessionData = db[sessionId] || {};
+            return sessionData[key] || null;
+        } catch (e) { return null; }
+    },
+    set: (sessionId, key, value) => {
+        try {
+            let db = {};
+            try { db = JSON.parse(fs.readFile("titan_sessions.json") || "{}"); } catch (e) { }
+            if (!db[sessionId]) db[sessionId] = {};
+            db[sessionId][key] = String(value);
+            fs.writeFile("titan_sessions.json", JSON.stringify(db));
+        } catch (e) { }
+    },
+    delete: (sessionId, key) => {
+        try {
+            let db = {};
+            try { db = JSON.parse(fs.readFile("titan_sessions.json") || "{}"); } catch (e) { }
+            if (db[sessionId]) {
+                delete db[sessionId][key];
+                fs.writeFile("titan_sessions.json", JSON.stringify(db));
+            }
+        } catch (e) { }
+    },
+    clear: (sessionId) => {
+        try {
+            let db = {};
+            try { db = JSON.parse(fs.readFile("titan_sessions.json") || "{}"); } catch (e) { }
+            delete db[sessionId];
+            fs.writeFile("titan_sessions.json", JSON.stringify(db));
+        } catch (e) { }
+    }
 };
 
 
@@ -524,6 +581,9 @@ const core = {
     time,
     url,
     buffer, // t.core.buffer
+    ls,
+    session,
+    cookies
 };
 
 t.fs = fs;

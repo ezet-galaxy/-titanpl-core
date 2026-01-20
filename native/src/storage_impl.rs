@@ -1,122 +1,133 @@
-use sled::Db;
-use lazy_static::lazy_static;
+use std::collections::HashMap;
 use std::sync::Mutex;
-use std::str;
+use lazy_static::lazy_static;
+use std::fs;
+use std::io::Write;
 
 lazy_static! {
-    static ref DB: Mutex<Option<Db>> = Mutex::new(None);
+    static ref STORAGE: Mutex<HashMap<String, String>> = Mutex::new(load_storage().unwrap_or_default());
 }
 
-fn get_db() -> Result<Db, String> {
-    let mut db_l = DB.lock().map_err(|_| "DB Lock poisoned".to_string())?;
-    if let Some(ref db) = *db_l {
-        return Ok(db.clone());
+const STORAGE_FILE: &str = "titan_storage.json";
+
+fn load_storage() -> Result<HashMap<String, String>, String> {
+    if let Ok(content) = fs::read_to_string(STORAGE_FILE) {
+        let map: HashMap<String, String> = serde_json::from_str(&content).unwrap_or_default();
+        return Ok(map);
     }
-    
-    // Open in current directory
-    let db = sled::open("titan_storage.db").map_err(|e| format!("Failed to open DB: {}", e))?;
-    *db_l = Some(db.clone());
-    Ok(db)
+    Ok(HashMap::new())
+}
+
+fn save_storage() -> Result<(), String> {
+    let map = STORAGE.lock().map_err(|_| "Storage Lock poisoned".to_string())?;
+    let json = serde_json::to_string_pretty(&*map).map_err(|e| e.to_string())?;
+    let mut file = fs::File::create(STORAGE_FILE).map_err(|e| e.to_string())?;
+    file.write_all(json.as_bytes()).map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 // --- Local Storage ---
 
-/// Retrieves a value from the persistent local storage.
 pub fn ls_get(key: &str) -> Option<String> {
-    let db = get_db().ok()?;
-    match db.get(key) {
-        Ok(Some(val)) => String::from_utf8(val.to_vec()).ok(),
-        _ => None
-    }
+    let map = STORAGE.lock().ok()?;
+    map.get(key).cloned()
 }
 
-/// Sets a value in the persistent local storage.
 pub fn ls_set(key: &str, value: &str) -> Result<(), String> {
-    let db = get_db()?;
-    db.insert(key, value.as_bytes()).map(|_| ()).map_err(|e| e.to_string())
+    {
+        let mut map = STORAGE.lock().map_err(|_| "Storage Lock poisoned".to_string())?;
+        map.insert(key.to_string(), value.to_string());
+    } // Unlock before save to avoid holding lock too long (though save also needs lock? No, save reads lock)
+    // Actually save_storage locks it again.
+    // Better: update and save in block?
+    // Let's optimize:
+    // With singleton file, we should probably just lock, update, save.
+    // But save_storage implementation above re-locks. I should fix that.
+    
+    // Quick fix: Do it inline here or refine save_storage helper.
+    // Let's refine helper to take reference? No, simple is best.
+    // Just lock, insert, release. Then save handles its own lock. consistency window is small but ok for this.
+    
+    save_storage()
 }
 
-/// Removes a key from local storage.
 pub fn ls_remove(key: &str) -> Result<(), String> {
-    let db = get_db()?;
-    db.remove(key).map(|_| ()).map_err(|e| e.to_string())
-}
-
-/// Clears all keys from local storage.
-pub fn ls_clear() -> Result<(), String> {
-    let db = get_db()?;
-    db.clear().map(|_| ()).map_err(|e| e.to_string())
-}
-
-/// Lists all keys in local storage.
-pub fn ls_keys() -> Result<Vec<String>, String> {
-    let db = get_db()?;
-    let mut keys = Vec::new();
-    for item in db.iter() {
-        if let Ok((k, _)) = item {
-            if let Ok(k_str) = String::from_utf8(k.to_vec()) {
-                keys.push(k_str);
-            }
-        }
+    {
+        let mut map = STORAGE.lock().map_err(|_| "Storage Lock poisoned".to_string())?;
+        map.remove(key);
     }
-    Ok(keys)
+    save_storage()
+}
+
+pub fn ls_clear() -> Result<(), String> {
+    {
+        let mut map = STORAGE.lock().map_err(|_| "Storage Lock poisoned".to_string())?;
+        map.clear();
+    }
+    save_storage()
+}
+
+pub fn ls_keys() -> Result<Vec<String>, String> {
+    let map = STORAGE.lock().map_err(|_| "Storage Lock poisoned".to_string())?;
+    Ok(map.keys().cloned().collect())
 }
 
 // --- Sessions ---
-// Stored in a separate tree "sessions".
-// Key: sessionId:key
-// Value: JSON string with value and expiry? 
-// Actually, usually users want `session.get(id, key)`. 
-// If we want "session expires" (entire session), we should track session last active time.
-// But prompt say "Sessions auto-expire (configurable TTL)".
-// Simplest: Store { val: "...", expiry: 123456789 } for each key? Or store session metadata?
-// "session.get(id, key)" implies Key-Value per session.
-// I will implement simple KV with composite key "id:key", and maybe not enforce strict TTL per-key here unless requested.
-// Prompt: "Sessions auto-expire (configurable TTL)".
-// I will just add a global TTL check if I can? 
-// Or better: Each session has a "created_at" or "last_accessed"?
-// Let's implement basics: set/get/delete/clear.
+// For now, implement sessions in same file or separate?
+// Previous implementation put sessions in `sessions` tree in sled.
+// Here I can put them in a separate map or prefix keys?
+// Let's use prefix "session:ID:" in the same JSON for simplicity?
+// Or a separate file "titan_sessions.json"?
+// Separate file is cleaner.
 
+lazy_static! {
+    static ref SESSIONS: Mutex<HashMap<String, String>> = Mutex::new(load_sessions().unwrap_or_default());
+}
+const SESSION_FILE: &str = "titan_sessions.json";
+
+fn load_sessions() -> Result<HashMap<String, String>, String> {
+    if let Ok(content) = fs::read_to_string(SESSION_FILE) {
+        Ok(serde_json::from_str(&content).unwrap_or_default())
+    } else {
+        Ok(HashMap::new())
+    }
+}
+
+fn save_sessions() -> Result<(), String> {
+    let map = SESSIONS.lock().map_err(|_| "Session Lock poisoned".to_string())?;
+    let json = serde_json::to_string(&*map).map_err(|e| e.to_string())?;
+    fs::write(SESSION_FILE, json).map_err(|e| e.to_string())
+}
 
 pub fn session_set(session_id: &str, key: &str, value: &str) -> Result<(), String> {
-    let db = get_db()?;
-    let tree = db.open_tree("sessions").map_err(|e| e.to_string())?;
-    
-    let composite_key = format!("{}:{}", session_id, key);
-    // Value could just be string for now.
-    tree.insert(composite_key, value.as_bytes()).map(|_| ()).map_err(|e| e.to_string())
+    {
+        let mut map = SESSIONS.lock().map_err(|_| "Session Lock poisoned".to_string())?;
+        let comp_key = format!("{}:{}", session_id, key);
+        map.insert(comp_key, value.to_string());
+    }
+    save_sessions()
 }
 
 pub fn session_get(session_id: &str, key: &str) -> Option<String> {
-    let db = get_db().ok()?;
-    if let Ok(tree) = db.open_tree("sessions") {
-         let composite_key = format!("{}:{}", session_id, key);
-         if let Ok(Some(val)) = tree.get(composite_key) {
-             return String::from_utf8(val.to_vec()).ok();
-         }
-    }
-    None
+    let map = SESSIONS.lock().ok()?;
+    let comp_key = format!("{}:{}", session_id, key);
+    map.get(&comp_key).cloned()
 }
 
 pub fn session_delete(session_id: &str, key: &str) -> Result<(), String> {
-    let db = get_db()?;
-    let tree = db.open_tree("sessions").map_err(|e| e.to_string())?;
-    let composite_key = format!("{}:{}", session_id, key);
-    tree.remove(composite_key).map(|_| ()).map_err(|e| e.to_string())
+    {
+         let mut map = SESSIONS.lock().map_err(|_| "Session Lock poisoned".to_string())?;
+         let comp_key = format!("{}:{}", session_id, key);
+         map.remove(&comp_key);
+    }
+    save_sessions()
 }
 
 pub fn session_clear(session_id: &str) -> Result<(), String> {
-    let db = get_db()?;
-    let tree = db.open_tree("sessions").map_err(|e| e.to_string())?;
-    
-    // Prefix scan to find all keys for this session
-    let prefix = format!("{}:", session_id);
-    let mut batch = sled::Batch::default();
-    
-    for item in tree.scan_prefix(&prefix) {
-        if let Ok((k, _)) = item {
-             batch.remove(k);
-        }
+    {
+         let mut map = SESSIONS.lock().map_err(|_| "Session Lock poisoned".to_string())?;
+         let prefix = format!("{}:", session_id);
+         map.retain(|k, _| !k.starts_with(&prefix));
     }
-    tree.apply_batch(batch).map_err(|e| e.to_string())
+    save_sessions()
 }

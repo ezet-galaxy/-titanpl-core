@@ -56,7 +56,7 @@ pub fn encrypt(algo: &str, key: &str, plaintext: &str) -> Result<String, String>
 }
 
 /// Decrypts a Base64 encoded string (nonce + ciphertext) using AES-256-GCM.
-pub fn decrypt(algo: &str, key: &str, ciphertext: &str) -> Result<String, String> {
+pub fn decrypt(algo: &str, key: &str, ciphertext: &str) -> Result<Vec<u8>, String> {
     match algo {
         "aes-256-gcm" | "aes256" => {
             let key_bytes = prepare_key(key, 32)?;
@@ -75,8 +75,7 @@ pub fn decrypt(algo: &str, key: &str, ciphertext: &str) -> Result<String, String
             let plaintext_bytes = cipher.decrypt(nonce, ciphertext_bytes)
                 .map_err(|_| "DECRYPTION_FAILED".to_string())?;
             
-            String::from_utf8(plaintext_bytes)
-                .map_err(|_| "Decrypted data is not valid UTF-8".to_string())
+            Ok(plaintext_bytes)
         },
         _ => Err(format!("Unsupported algorithm: {}", algo))
     }
