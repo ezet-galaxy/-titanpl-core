@@ -1,12 +1,12 @@
 {
     "name": "@titanpl/core",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "The official Core Standard Library for Titan Planet - provides fs, path, crypto, os, net, proc, time, and url modules",
     "main": "index.js",
     "types": "globals.d.ts",
     "scripts": {
         "build:native": "cd native && cargo build --release",
-        "test": "tit run ext"
+        "test": "titan run ext"
     },
     "keywords": [
         "titan",

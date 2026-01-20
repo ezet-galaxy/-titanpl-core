@@ -1,7 +1,7 @@
 {
   "name": "@titanpl/core",
   "description": "The official Core Standard Library for Titan Planet",
-  "version": "1.0.0",
+  "version": "2.0.1",
   "main": "index.js",
   "native": {
     "path": "native/target/release/titan_core.dll",
@@ -107,6 +107,101 @@
         "symbol": "time_sleep",
         "parameters": [
           "f64"
+        ],
+        "result": "void"
+      },
+      "crypto_encrypt": {
+        "symbol": "crypto_encrypt",
+        "parameters": [
+          "string",
+          "string"
+        ],
+        "result": "string"
+      },
+      "crypto_decrypt": {
+        "symbol": "crypto_decrypt",
+        "parameters": [
+          "string",
+          "string"
+        ],
+        "result": "string"
+      },
+      "crypto_hash_keyed": {
+        "symbol": "crypto_hash_keyed",
+        "parameters": [
+          "string",
+          "string"
+        ],
+        "result": "string"
+      },
+      "crypto_compare": {
+        "symbol": "crypto_compare",
+        "parameters": [
+          "string",
+          "string"
+        ],
+        "result": "bool"
+      },
+      "ls_get": {
+        "symbol": "ls_get",
+        "parameters": [
+          "string"
+        ],
+        "result": "string"
+      },
+      "ls_set": {
+        "symbol": "ls_set",
+        "parameters": [
+          "string",
+          "string"
+        ],
+        "result": "void"
+      },
+      "ls_remove": {
+        "symbol": "ls_remove",
+        "parameters": [
+          "string"
+        ],
+        "result": "void"
+      },
+      "ls_clear": {
+        "symbol": "ls_clear",
+        "parameters": [],
+        "result": "void"
+      },
+      "ls_keys": {
+        "symbol": "ls_keys",
+        "parameters": [],
+        "result": "string"
+      },
+      "session_get": {
+        "symbol": "session_get",
+        "parameters": [
+          "string",
+          "string"
+        ],
+        "result": "string"
+      },
+      "session_set": {
+        "symbol": "session_set",
+        "parameters": [
+          "string",
+          "string"
+        ],
+        "result": "void"
+      },
+      "session_delete": {
+        "symbol": "session_delete",
+        "parameters": [
+          "string",
+          "string"
+        ],
+        "result": "void"
+      },
+      "session_clear": {
+        "symbol": "session_clear",
+        "parameters": [
+          "string"
         ],
         "result": "void"
       }

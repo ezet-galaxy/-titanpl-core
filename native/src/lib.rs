@@ -1,12 +1,15 @@
+mod crypto_impl;
+mod storage_impl;
+
 use std::fs;
 use std::path::Path;
 use std::thread;
 use std::time::Duration;
 use serde_json::json;
 use sha2::{Sha256, Sha512, Digest};
-use uuid::Uuid; // Uuid v4
+use uuid::Uuid;
 use md5::Md5;
-use rand::Rng; // For random_bytes
+use rand::Rng;
 
 // --- FS ---
 
@@ -125,6 +128,58 @@ pub extern "C" fn crypto_uuid() -> String {
     Uuid::new_v4().to_string()
 }
 
+// New Crypto Extensions
+#[no_mangle]
+pub extern "C" fn crypto_encrypt(algo: String, json_str: String) -> String {
+    let inputs: serde_json::Value = match serde_json::from_str(&json_str) {
+        Ok(v) => v,
+        Err(_) => return "ERROR:Invalid JSON arguments".to_string()
+    };
+    let key = inputs["key"].as_str().unwrap_or("");
+    let plaintext = inputs["plaintext"].as_str().unwrap_or("");
+    
+    match crypto_impl::encrypt(&algo, key, plaintext) {
+        Ok(result) => result,
+        Err(e) => format!("ERROR:{}", e) 
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn crypto_decrypt(algo: String, json_str: String) -> String {
+    let inputs: serde_json::Value = match serde_json::from_str(&json_str) {
+        Ok(v) => v,
+        Err(_) => return "ERROR:Invalid JSON arguments".to_string()
+    };
+    let key = inputs["key"].as_str().unwrap_or("");
+    let ciphertext = inputs["ciphertext"].as_str().unwrap_or("");
+
+    match crypto_impl::decrypt(&algo, key, ciphertext) {
+        Ok(result) => result,
+        Err(e) => format!("ERROR:{}", e)
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn crypto_hash_keyed(algo: String, json_str: String) -> String {
+     let inputs: serde_json::Value = match serde_json::from_str(&json_str) {
+        Ok(v) => v,
+        Err(_) => return "ERROR:Invalid JSON arguments".to_string()
+    };
+    let key = inputs["key"].as_str().unwrap_or("");
+    let message = inputs["message"].as_str().unwrap_or("");
+
+    match crypto_impl::hash_keyed(&algo, key, message) {
+        Ok(result) => result,
+        Err(e) => format!("ERROR:{}", e)
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn crypto_compare(a: String, b: String) -> bool {
+    crypto_impl::compare(&a, &b)
+}
+
+
 // --- OS ---
 
 #[no_mangle]
@@ -190,4 +245,62 @@ pub extern "C" fn time_sleep(ms: f64) {
     println!("[Native] Sleeping for {} ms", ms);
     thread::sleep(Duration::from_millis(ms as u64));
     println!("[Native] Woke up");
+}
+
+// --- Local Storage ---
+
+#[no_mangle]
+pub extern "C" fn ls_get(key: String) -> String {
+    storage_impl::ls_get(&key).unwrap_or("".to_string())
+}
+
+#[no_mangle]
+pub extern "C" fn ls_set(key: String, value: String) {
+    let _ = storage_impl::ls_set(&key, &value);
+}
+
+#[no_mangle]
+pub extern "C" fn ls_remove(key: String) {
+    let _ = storage_impl::ls_remove(&key);
+}
+
+#[no_mangle]
+pub extern "C" fn ls_clear() {
+    let _ = storage_impl::ls_clear();
+}
+
+#[no_mangle]
+pub extern "C" fn ls_keys() -> String {
+    match storage_impl::ls_keys() {
+        Ok(keys) => serde_json::to_string(&keys).unwrap_or("[]".to_string()),
+        Err(_) => "[]".to_string()
+    }
+}
+
+// --- Sessions ---
+
+#[no_mangle]
+pub extern "C" fn session_get(id: String, key: String) -> String {
+     storage_impl::session_get(&id, &key).unwrap_or("".to_string())
+}
+
+#[no_mangle]
+pub extern "C" fn session_set(id: String, json_str: String) {
+    let inputs: serde_json::Value = match serde_json::from_str(&json_str) {
+        Ok(v) => v,
+        Err(_) => return
+    };
+    let key = inputs["key"].as_str().unwrap_or("");
+    let value = inputs["value"].as_str().unwrap_or("");
+    let _ = storage_impl::session_set(&id, key, value);
+}
+
+#[no_mangle]
+pub extern "C" fn session_delete(id: String, key: String) {
+    let _ = storage_impl::session_delete(&id, &key);
+}
+
+#[no_mangle]
+pub extern "C" fn session_clear(id: String) {
+    let _ = storage_impl::session_clear(&id);
 }

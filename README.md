@@ -49,6 +49,9 @@ Cryptographic utilities using native Rust implementations.
 - `crypto.randomBytes(size: number): string` - Generate random bytes as hex string.
 - `crypto.uuid(): string` - Generate a UUID v4.
 - `crypto.compare(hash: string, target: string): boolean` - Constant-time comparison.
+- `crypto.encrypt(algorithm: string, key: string, plaintext: string): string` - AES-256-GCM Encrypt (Returns Base64).
+- `crypto.decrypt(algorithm: string, key: string, ciphertext: string): string` - AES-256-GCM Decrypt.
+- `crypto.hashKeyed(algo: string, key: string, message: string): string` - HMAC-SHA256/512.
 
 **Example:**
 ```javascript
@@ -58,6 +61,36 @@ const valid = t.core.crypto.compare(
     hash
 );
 ```
+
+### `buffer` (Buffer Utilities)
+Utilities for binary data manipulation.
+- `buffer.fromBase64(str: string): Uint8Array` - Decode Base64 string.
+- `buffer.toBase64(bytes: Uint8Array|string): string` - Encode to Base64.
+- `buffer.fromHex(str: string): Uint8Array` - Decode Hex string.
+- `buffer.toHex(bytes: Uint8Array|string): string` - Encode to Hex.
+- `buffer.fromUtf8(str: string): Uint8Array` - Encode UTF-8 string to bytes.
+- `buffer.toUtf8(bytes: Uint8Array): string` - Decode bytes to UTF-8 string.
+
+### `ls` / `localStorage` (Persistent Storage)
+Key-value storage persisted to disk (via Sled).
+- `ls.get(key: string): string|null` - Get value.
+- `ls.set(key: string, value: string): void` - Set value.
+- `ls.remove(key: string): void` - Remove key.
+- `ls.clear(): void` - Clear all storage.
+- `ls.keys(): string[]` - List all keys.
+
+### `session` (Server-side Sessions)
+Session management backed by persistent storage.
+- `session.get(sessionId: string, key: string): string|null` - Get session value.
+- `session.set(sessionId: string, key: string, value: string): void` - Set session value.
+- `session.delete(sessionId: string, key: string): void` - Delete session value.
+- `session.clear(sessionId: string): void` - Clear entire session.
+
+### `cookies` (HTTP Cookies)
+Cookie parsing and serialization.
+- `cookies.get(req: object, name: string): string|null` - Parse cookie from request headers.
+- `cookies.set(res: object, name: string, value: string, options: object): void` - Set `Set-Cookie` header on response. Options: `{ httpOnly, secure, sameSite, path, maxAge }`.
+- `cookies.delete(res: object, name: string): void` - Delete cookie (expire).
 
 ### `os` (Operating System)
 Get system information.
