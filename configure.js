@@ -1,14 +1,13 @@
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-
-const platform = os.platform(); // 'win32', 'linux', 'darwin'
-const titanConfigPath = path.resolve(__dirname, 'titan.json');
+import { readFileSync, existsSync, writeFileSync } from 'fs';
+import { resolve } from 'path';
+import { platform as _platform } from 'os';
+const platform = _platform(); // 'win32', 'linux', 'darwin'
+const titanConfigPath = resolve(__dirname, 'titan.json');
 
 console.log(`Configuring titan.json for platform: ${platform}`);
 
 try {
-    const content = fs.readFileSync(titanConfigPath, 'utf8');
+    const content = readFileSync(titanConfigPath, 'utf8');
     const titanConfig = JSON.parse(content);
 
     let libPath = "";
@@ -21,8 +20,8 @@ try {
         libPath = "native/target/release/libtitan_core.so";
     }
 
-    const fullPath = path.resolve(__dirname, libPath);
-    if (!fs.existsSync(fullPath)) {
+    const fullPath = resolve(__dirname, libPath);
+    if (!existsSync(fullPath)) {
         console.warn(`Warning: Native binary not found at ${fullPath}. Valid binaries for this platform must be built or provided.`);
     }
 
@@ -38,7 +37,7 @@ try {
 
     titanConfig.native.path = libPath;
 
-    fs.writeFileSync(titanConfigPath, JSON.stringify(titanConfig, null, 2));
+    writeFileSync(titanConfigPath, JSON.stringify(titanConfig, null, 2));
     console.log(`Successfully updated titan.json native path to: ${libPath}`);
 } catch (error) {
     console.error("Error configuring titan.json:", error);

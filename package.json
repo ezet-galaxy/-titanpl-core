@@ -1,8 +1,9 @@
 {
     "name": "@titanpl/core",
-    "version": "2.0.5",
+    "version": "2.0.6",
     "description": "The official Core Standard Library for Titan Planet - provides fs, path, crypto, os, net, proc, time, and url modules",
     "main": "index.js",
+    "type": "module",
     "types": "index.d.ts",
     "scripts": {
         "configure": "node configure.js",
@@ -27,6 +28,7 @@
     "license": "ISC",
     "files": [
         "index.js",
+        "configure.js",
         "titan.json",
         "globals.d.ts",
         "index.d.ts",
@@ -36,7 +38,8 @@
         "README.md"
     ],
     "engines": {
-        "node": ">=18.0.0"
+        "node": ">=18.0.0",
+        "@ezetgalaxy/titan": ">=26.10.2"
     },
     "devDependencies": {
         "esbuild": "^0.27.2"
