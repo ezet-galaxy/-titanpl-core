@@ -485,7 +485,15 @@ const os = {
         const info = JSON.parse(native_os_info());
         return info.freeMemory;
     },
-    tmpdir: () => '/tmp'
+    tmpdir: () => {
+        if (!native_os_info) return '/tmp';
+        try {
+            const info = JSON.parse(native_os_info());
+            return info.tempDir || '/tmp';
+        } catch (e) {
+            return '/tmp';
+        }
+    }
 };
 
 // --- Net ---

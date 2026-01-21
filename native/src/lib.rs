@@ -238,10 +238,10 @@ pub extern "C" fn os_info() -> *mut c_char {
     let info = serde_json::json!({
         "platform": std::env::consts::OS,
         "cpus": std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1),
-        // Wait, Cargo.toml has sys-info? 
         // sys-info = "0.9"
         "totalMemory": sys_info::mem_info().map(|m| m.total * 1024).unwrap_or(0),
         "freeMemory": sys_info::mem_info().map(|m| m.free * 1024).unwrap_or(0),
+        "tempDir": std::env::temp_dir(),
     });
     string_to_ptr(info.to_string())
 }
