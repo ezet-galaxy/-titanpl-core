@@ -4,7 +4,7 @@
   "version": "2.0.7",
   "main": "index.js",
   "native": {
-    "path": "native/target/release/titan_core.dll",
+    "path": "native/target/release/libtitan_core.so",
     "functions": {
       "fs_read_file": {
         "symbol": "fs_read_file",

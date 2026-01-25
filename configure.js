@@ -26,24 +26,7 @@ const expectedBinary = resolve(nativeDir, "target/release", libFile);
 
 // 2. Build if binary missing
 if (!existsSync(expectedBinary)) {
-    console.log(`Native binary missing. Building silently for ${platform}...`);
-
-    const build = spawnSync(
-        "cargo",
-        ["build", "--release"],
-        {
-            cwd: nativeDir,
-            stdio: "ignore",   // <-- completely hides Rust logs
-            shell: true
-        }
-    );
-
-    if (build.status !== 0) {
-        console.error("Cargo build failed. (No logs shown due to silent mode)");
-        process.exit(1);
-    }
-
-    console.log(`Build completed for ${platform}.`);
+    console.log(`Native binary missing.`);
 }
 
 // 3. Update titan.json
