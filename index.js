@@ -435,6 +435,64 @@ const cookies = {
     }
 };
 
+
+
+// --- Response ---
+/** Advanced HTTP Response Management */
+const response = (options) => {
+    return {
+        _isResponse: true,
+        status: options.status || 200,
+        headers: options.headers || {},
+        body: options.body || ""
+    };
+};
+
+response.text = (content, options = {}) => {
+    return {
+        _isResponse: true,
+        status: options.status || 200,
+        headers: { "Content-Type": "text/plain", ...(options.headers || {}) },
+        body: content
+    };
+};
+
+response.html = (content, options = {}) => {
+    return {
+        _isResponse: true,
+        status: options.status || 200,
+        headers: { "Content-Type": "text/html; charset=utf-8", ...(options.headers || {}) },
+        body: content
+    };
+};
+
+response.json = (content, options = {}) => {
+    return {
+        _isResponse: true,
+        status: options.status || 200,
+        headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+        body: JSON.stringify(content)
+    };
+};
+
+response.redirect = (url, status = 302) => {
+    return {
+        _isResponse: true,
+        status: status,
+        headers: { "Location": url },
+        body: ""
+    };
+};
+
+response.empty = (status = 204) => {
+    return {
+        _isResponse: true,
+        status: status,
+        headers: {},
+        body: ""
+    };
+};
+
 // --- OS ---
 const os = {
     platform: () => {
@@ -563,7 +621,8 @@ const core = {
     buffer, // t.core.buffer
     ls,
     session,
-    cookies
+    cookies,
+    response
 };
 
 t.fs = fs;
@@ -581,6 +640,7 @@ t.ls = ls;
 t.localStorage = ls;
 t.session = session;
 t.cookies = cookies;
+t.response = response;
 
 // Attach core as unified namespace (main access point)
 t.core = core;

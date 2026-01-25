@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 use std::sync::{OnceLock, RwLock};
 
-// In-memory storage using RwLock for high-performance concurrent access
-// ~1000x faster than Sled (~0.001ms vs ~5ms per operation)
-// Trade-off: Data is lost on server restart (no disk persistence)
+
 static STORAGE: OnceLock<RwLock<HashMap<String, String>>> = OnceLock::new();
 static SESSIONS: OnceLock<RwLock<HashMap<String, String>>> = OnceLock::new();
 

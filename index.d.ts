@@ -108,6 +108,23 @@ declare global {
             cookies: TitanCore.Cookies;
 
             /**
+             * Response API - Advanced HTTP Response Management
+             * 
+             * Enables full control over HTTP responses including:
+             * - Custom status codes
+             * - Custom headers
+             * - Content-Type management
+             * - Redirects
+             * 
+             * @example
+             * ```typescript
+             * return t.response.text("Hello World");
+             * return t.response.json({ ok: true }, { status: 201 });
+             * ```
+             */
+            response: TitanCore.ResponseModule;
+
+            /**
              * Core namespace - Unified access to all APIs
              */
             core: TitanCore.Core;
@@ -134,6 +151,7 @@ declare global {
             ls: LocalStorage;
             session: Session;
             cookies: Cookies;
+            response: ResponseModule;
         }
 
         // ==================== File System ====================
@@ -809,16 +827,6 @@ declare global {
              * @param name - Cookie name
              * @param value - Cookie value (will be URL-encoded)
              * @param options - Cookie options (maxAge, path, httpOnly, etc.)
-             * 
-             * @example
-             * ```typescript
-             * t.cookies.set(res, 'session_id', 'abc123', {
-             *   httpOnly: true,
-             *   secure: true,
-             *   maxAge: 3600,
-             *   sameSite: 'Strict'
-             * });
-             * ```
              */
             set(res: any, name: string, value: string, options?: CookieOptions): void;
 
@@ -845,6 +853,75 @@ declare global {
             secure?: boolean;
             /** SameSite policy: "Strict", "Lax", or "None" */
             sameSite?: 'Strict' | 'Lax' | 'None';
+        }
+
+        // ==================== Response ====================
+
+        /**
+         * Response API - Advanced HTTP Response Control
+         */
+        interface ResponseModule {
+            /**
+             * Creates a fully custom response
+             * @param options - Response configuration
+             */
+            (options: ResponseOptions): ResponseObject;
+
+            /**
+             * Creates a Plain Text response (Content-Type: text/plain)
+             * @param content - Text content
+             * @param options - Additional options
+             */
+            text(content: string, options?: ResponseOptions): ResponseObject;
+
+            /**
+             * Creates an HTML response (Content-Type: text/html)
+             * @param content - HTML content
+             * @param options - Additional options
+             */
+            html(content: string, options?: ResponseOptions): ResponseObject;
+
+            /**
+             * Creates a JSON response (Content-Type: application/json)
+             * @param content - JSON serializable object
+             * @param options - Additional options
+             */
+            json(content: any, options?: ResponseOptions): ResponseObject;
+
+            /**
+             * Creates a Redirect response (301/302)
+             * @param url - URL to redirect to
+             * @param status - HTTP Status Code (default: 302)
+             */
+            redirect(url: string, status?: number): ResponseObject;
+
+            /**
+             * Creates an empty response (e.g., 204 No Content)
+             * @param status - HTTP Status Code (default: 204)
+             */
+            empty(status?: number): ResponseObject;
+        }
+
+        /**
+         * Options for customizing the response
+         */
+        interface ResponseOptions {
+            /** HTTP Status Code (e.g., 200, 404, 500) */
+            status?: number;
+            /** Custom HTTP Headers */
+            headers?: Record<string, string>;
+            /** Response Body */
+            body?: string;
+        }
+
+        /**
+         * Standardized Response Object for the Runtime
+         */
+        interface ResponseObject {
+            _isResponse: true;
+            status: number;
+            headers: Record<string, string>;
+            body: string;
         }
     }
 }
