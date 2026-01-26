@@ -122,6 +122,126 @@ URL parsing and manipulation.
 - `url.format(urlObject: object): string` - Format URL object.
 - `new url.SearchParams(query: string|object)` - Handle query strings.
 
+# **`response` (HTTP Response Builder)**
+
+The Titan Planet response API allows actions to return standardized response instructions.
+These instructions are interpreted by the Rust HTTP server and serialized into real HTTP responses.
+
+Currently supported response types:
+
+* `text`
+* `html`
+* `json`
+
+These are synchronous and optimized for Gravity’s execution model.
+
+---
+
+## **API Reference**
+
+### **`response.text(content: string, status?: number): ResponseObject`**
+
+Send a plain text response.
+
+```js
+return t.response.text("Hello World");
+```
+
+Parameters:
+
+* `content` — string body
+* `status` — optional HTTP status (default `200`)
+
+Automatically sets:
+
+```
+Content-Type: text/plain; charset=utf-8
+```
+
+---
+
+### **`response.html(content: string, status?: number): ResponseObject`**
+
+Send an HTML document.
+
+```js
+return t.response.html("<h1>Hello</h1>");
+```
+
+Automatically sets:
+
+```
+Content-Type: text/html; charset=utf-8
+```
+
+---
+
+### **`response.json(data: any, status?: number): ResponseObject`**
+
+Send JSON from a JavaScript object.
+
+```js
+return t.response.json({ ok: true });
+```
+
+Automatically sets:
+
+```
+Content-Type: application/json
+```
+
+Serialization:
+
+* TitanPl's Gravity Runtime automatically converts JavaScript objects to a JSON string.
+* Dates, arrays, nested objects, primitives are supported.
+
+---
+
+## **ResponseObject Structure**
+
+Every `t.response.*` call returns a standardized object:
+
+```ts
+{
+  type: "response",
+  status: number,
+  headers: { [key: string]: string },
+  body: string
+}
+```
+
+The Rust HTTP server reads this object and writes the actual HTTP response.
+
+---
+
+## **Examples**
+
+### Plain text
+
+```js
+export const ping = () => {
+    return t.response.text("pong");
+};
+```
+
+### HTML
+
+```js
+export const home = () => {
+    return t.response.html("<h1>Welcome</h1>");
+};
+```
+
+### JSON
+
+```js
+export const api = () => {
+    return t.response.json({ version: "1.0.0" });
+};
+```
+
+
+
 ## Native Bindings
 This extension includes native Rust bindings for high-performance operations. The native library is automatically loaded by the Titan Runtime.
 
