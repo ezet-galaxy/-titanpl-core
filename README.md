@@ -122,45 +122,28 @@ URL parsing and manipulation.
 - `url.format(urlObject: object): string` - Format URL object.
 - `new url.SearchParams(query: string|object)` - Handle query strings.
 
-# **`response` (HTTP Response Builder)**
+### **`response` (HTTP Response Builder)**
 
-The Titan Planet response API allows actions to return standardized response instructions.
-These instructions are interpreted by the Rust HTTP server and serialized into real HTTP responses.
+Utilities for constructing HTTP responses.
+All response methods return a standardized ResponseObject consumed by the Titan Rust HTTP server.
 
-Currently supported response types:
+- `response.text(content: string, status?: number): ResponseObject` – Send plain text.
+- `response.html(content: string, status?: number): ResponseObject` – Send HTML content.
+- `response.json(data: any, status?: number): ResponseObject` – Send JSON-encoded data.
 
-* `text`
-* `html`
-* `json`
+### **`response.text(content: string, status?: number)`**
 
-These are synchronous and optimized for Gravity’s execution model.
-
----
-
-## **API Reference**
-
-### **`response.text(content: string, status?: number): ResponseObject`**
-
-Send a plain text response.
+Send plain UTF-8 text.
 
 ```js
 return t.response.text("Hello World");
 ```
 
-Parameters:
-
-* `content` — string body
-* `status` — optional HTTP status (default `200`)
-
 Automatically sets:
 
-```
-Content-Type: text/plain; charset=utf-8
-```
+* `Content-Type: text/plain; charset=utf-8`
 
----
-
-### **`response.html(content: string, status?: number): ResponseObject`**
+### **`response.html(content: string, status?: number)`**
 
 Send an HTML document.
 
@@ -170,13 +153,9 @@ return t.response.html("<h1>Hello</h1>");
 
 Automatically sets:
 
-```
-Content-Type: text/html; charset=utf-8
-```
+* `Content-Type: text/html; charset=utf-8`
 
----
-
-### **`response.json(data: any, status?: number): ResponseObject`**
+### **`response.json(data: any, status?: number)`**
 
 Send JSON from a JavaScript object.
 
@@ -186,20 +165,15 @@ return t.response.json({ ok: true });
 
 Automatically sets:
 
-```
-Content-Type: application/json
-```
+* `Content-Type: application/json`
 
-Serialization:
+JSON serialization:
 
-* TitanPl's Gravity Runtime automatically converts JavaScript objects to a JSON string.
-* Dates, arrays, nested objects, primitives are supported.
+* Objects, arrays, primitives, and nested structures are supported.
 
----
+### **ResponseObject**
 
-## **ResponseObject Structure**
-
-Every `t.response.*` call returns a standardized object:
+Standard structure returned by all response methods:
 
 ```ts
 {
@@ -210,36 +184,18 @@ Every `t.response.*` call returns a standardized object:
 }
 ```
 
-The Rust HTTP server reads this object and writes the actual HTTP response.
-
----
-
-## **Examples**
-
-### Plain text
+### **Examples**
 
 ```js
-export const ping = () => {
-    return t.response.text("pong");
-};
+// Text
+t.response.text("pong");
+
+// HTML
+t.response.html("<h1>Welcome</h1>");
+
+// JSON
+t.response.json({ version: "1.0.0" });
 ```
-
-### HTML
-
-```js
-export const home = () => {
-    return t.response.html("<h1>Welcome</h1>");
-};
-```
-
-### JSON
-
-```js
-export const api = () => {
-    return t.response.json({ version: "1.0.0" });
-};
-```
-
 
 
 ## Native Bindings
