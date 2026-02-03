@@ -119,10 +119,11 @@ declare global {
             * 
             * - ⚡ RwLock<HashMap> implementation (~0.006ms per read)
             * - 🚀 ~1000x faster than file-based storage
-            * - 💾 In-memory only (volatile)
-            * 
-            * @use Perfect for caching frequently accessed data within a single process.
-            * @suggestion Use for metadata, temporary counters, and cross-action shared state.
+             * - 💾 In-memory only (volatile)
+             * - 📦 **New:** Supports V8 Serialization (store Maps, Sets, Dates, etc.)
+             * 
+             * @use Perfect for caching frequently accessed data and complex objects within a single process.
+             * @suggestion Use `setObject`/`getObject` for complex data structures to maintain types.
             */
             ls: TitanCore.LocalStorage;
 
@@ -623,6 +624,10 @@ declare global {
             clear(): void;
             /** List all keys. */
             keys(): string[];
+            /** Stores a complex JavaScript object using V8 serialization and Base64 encoding. */
+            setObject(key: string, value: any): void;
+            /** Retrieves and deserializes a complex JavaScript object. Returns null if not found or invalid. */
+            getObject<T = any>(key: string): T | null;
 
             /**
              * Serialize a JavaScript value to a V8-compatible binary format.

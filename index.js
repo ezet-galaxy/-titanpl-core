@@ -375,6 +375,23 @@ const ls = {
         }
     },
 
+    /** Stores a complex JavaScript object using V8 serialization and Base64 encoding. */
+    setObject: (key, value) => {
+        const bytes = ls.serialize(value);
+        ls.set(key, buffer.toBase64(bytes));
+    },
+    /** Retrieves and deserializes a complex JavaScript object. */
+    getObject: (key) => {
+        const b64 = ls.get(key);
+        if (!b64 || b64.length === 0) return null;
+        try {
+            const bytes = buffer.fromBase64(b64);
+            return ls.deserialize(bytes);
+        } catch (e) {
+            return null;
+        }
+    },
+
     serialize: (value) => {
         if (!natives.serialize) throw new Error("ls.serialize is not available in natives");
         return natives.serialize(value);
