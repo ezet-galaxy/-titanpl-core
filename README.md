@@ -80,6 +80,10 @@ Key-value storage persisted to disk (via Sled).
 - `ls.keys(): string[]` - List all keys.
 - `ls.serialize(value: any): Uint8Array` - Serialize any JS value to V8 format (using native v8::ValueSerializer). Supports Maps, Sets, Dates, Uint8Arrays, and cyclical references.
 - `ls.deserialize(bytes: Uint8Array): any` - Deserialize V8-format bytes back to JS value.
+- `ls.register(ClassRef, hydrateFn?, typeName?): void` - Register a class for hydration support.
+- `ls.hydrate(typeName, data): any` - Hydrate a custom object from data.
+- `ls.setObject(key: string, value: any): void` - Stores a complex JavaScript object using V8 serialization.
+- `ls.getObject(key: string): any` - Retrieves and deserializes a complex JavaScript object.
 
 **Serialization Example:**
 ```javascript
@@ -94,8 +98,8 @@ const bytes = t.ls.serialize(data);
 
 // Restore original object structure
 const restored = t.ls.deserialize(bytes);
-console.log(restored.map.get('key')); // 'value'
-console.log(restored.buffer instanceof Uint8Array); // true
+t.log(restored.map.get('key')); // 'value'
+t.log(restored.buffer instanceof Uint8Array); // true
 ```
 
 ### `session` (Server-side Sessions)
@@ -177,7 +181,7 @@ An array of process objects, where each object typically contains:
 ```javascript
 const processes = t.proc.list();
 const nodeProcs = processes.filter(p => p.name === "node.exe");
-console.log(`Found ${nodeProcs.length} Node processes.`);
+t.log(`Found ${nodeProcs.length} Node processes.`);
 ```
 
 #### `proc.kill(pid)`
@@ -203,7 +207,7 @@ Returns the Process ID (PID) of the current Titan runtime instance.
 
 **Example:**
 ```javascript
-console.log("Current PID:", t.proc.pid());
+t.log("Current PID:", t.proc.pid());
 ```
 
 #### `proc.uptime()`
@@ -215,7 +219,7 @@ Returns the system uptime in seconds.
 **Example:**
 ```javascript
 const days = t.proc.uptime() / 86400;
-console.log(`System has been up for ${days.toFixed(1)} days.`);
+t.log(`System has been up for ${days.toFixed(1)} days.`);
 ```
 
 #### `proc.memory()`

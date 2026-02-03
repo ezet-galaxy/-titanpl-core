@@ -271,12 +271,13 @@ declare namespace TitanCore {
         /** Memory usage statistics. */
         memory(): Record<string, any>;
         /**
-         * Execute a system command.
-         * @param command Command to run.
-         * @param args Arguments array.
-         * @returns Execution result with stdout/stderr.
+         * Spawn a subprocess.
+         * @param command The executable to run.
+         * @param args Arguments to pass.
+         * @param cwd Current working directory.
+         * @returns Object containing the PID of the spawned process.
          */
-        run(command: string, args?: string[]): Record<string, any>;
+        run(command: string, args: string[], cwd?: string): { ok: boolean, pid: number, cwd: string };
         /**
          * Kill a process by PID.
          * @param pid Process ID to kill.
@@ -405,6 +406,30 @@ declare namespace TitanCore {
         clear(): void;
         /** List all keys. */
         keys(): string[];
+        /** Stores a complex JavaScript object using V8 serialization and Base64 encoding. */
+        setObject(key: string, value: any): void;
+        /** Retrieves and deserializes a complex JavaScript object. Returns null if not found or invalid. */
+        getObject<T = any>(key: string): T | null;
+
+        /**
+         * Serialize a JavaScript value to a V8-compatible binary format.
+         */
+        serialize(value: any): Uint8Array;
+
+        /**
+         * Deserialize a V8-compatible binary format back to a JavaScript value.
+         */
+        deserialize(bytes: Uint8Array): any;
+
+        /**
+         * Register a class for hydration/serialization support.
+         */
+        register(ClassRef: Function, hydrateFn?: Function, typeName?: string): void;
+
+        /**
+         * Hydrate a custom object from data.
+         */
+        hydrate(typeName: string, data: object): any;
     }
 
     // ==================== Session ====================
