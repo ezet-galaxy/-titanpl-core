@@ -1,712 +1,515 @@
-// Type definitions for @titanpl/core
-// Project: https://github.com/titanpl/core
-// Definitions by: TitanPL Team
-//
-// This reference ensures global types (t.fs, t.response, etc.) are always
-// loaded when this package is imported OR included via tsconfig "types".
+// =============================================================================
+//  @titanpl/core — Module Type Definitions
+//  The official Core Standard Library for Titan Planet
+//  Version: 2.x
+//  Repository: https://github.com/ezet-galaxy/-titanpl-core
+// =============================================================================
+
 /// <reference path="./globals.d.ts" />
 
-// ==================== ESM Named Exports ====================
-// These match the `export { ... }` block in the JS implementation.
-// Usage: import { fs, crypto, path } from '@titanpl/core';
+// =============================================================================
+//  ESM Named Exports
+//  Usage: import { fs, crypto, response } from '@titanpl/core';
+// =============================================================================
 
-/** File System module */
+/**
+ * # File System Module
+ *
+ * Native file operations backed by Rust. All methods are **synchronous**.
+ *
+ * **Methods:**
+ * - `readFile(path)` — Read file as UTF-8 string
+ * - `writeFile(path, content)` — Write string to file
+ * - `readdir(path)` — List directory contents
+ * - `mkdir(path)` — Create directory (recursive)
+ * - `exists(path)` — Check if path exists
+ * - `stat(path)` — Get file metadata
+ * - `remove(path)` — Delete file or directory
+ *
+ * @example
+ * ```js
+ * import { fs } from '@titanpl/core';
+ *
+ * // Read and parse JSON
+ * const config = JSON.parse(fs.readFile("./config.json"));
+ *
+ * // Write data
+ * fs.writeFile("./output.json", JSON.stringify(data, null, 2));
+ *
+ * // Check existence
+ * if (fs.exists("./cache")) {
+ *     const files = fs.readdir("./cache");
+ * }
+ * ```
+ *
+ * @see https://github.com/ezet-galaxy/-titanpl-core#fs-file-system
+ */
 export declare const fs: TitanCore.FileSystem;
 
-/** Path manipulation module */
+/**
+ * # Path Module
+ *
+ * Cross-platform path manipulation utilities. All methods are **synchronous**.
+ *
+ * **Methods:**
+ * - `join(...parts)` — Join path segments
+ * - `resolve(...parts)` — Resolve to absolute path
+ * - `dirname(path)` — Get directory name
+ * - `basename(path)` — Get file name
+ * - `extname(path)` — Get file extension
+ *
+ * @example
+ * ```js
+ * import { path } from '@titanpl/core';
+ *
+ * const configPath = path.join("app", "config", "settings.json");
+ * const absolute = path.resolve("./data", "users.db");
+ *
+ * path.dirname("/var/log/app.log");  // → "/var/log"
+ * path.basename("/var/log/app.log"); // → "app.log"
+ * path.extname("photo.png");         // → ".png"
+ * ```
+ *
+ * @see https://github.com/ezet-galaxy/-titanpl-core#path-path-manipulation
+ */
 export declare const path: TitanCore.Path;
 
-/** Cryptography module */
+/**
+ * # Cryptography Module
+ *
+ * Cryptographic utilities powered by native Rust. All methods are **synchronous**.
+ *
+ * **Methods:**
+ * - `hash(algo, data)` — Hash data (sha256, sha512, md5)
+ * - `randomBytes(size)` — Generate random bytes (hex)
+ * - `uuid()` — Generate UUID v4
+ * - `compare(a, b)` — Constant-time comparison
+ * - `base64.encode(str)` / `base64.decode(str)` — Base64 utilities
+ * - `encrypt(algo, key, plaintext)` — AES-256-GCM encrypt
+ * - `decrypt(algo, key, ciphertext)` — AES-256-GCM decrypt
+ * - `hashKeyed(algo, key, message)` — HMAC signing
+ *
+ * @example
+ * ```js
+ * import { crypto } from '@titanpl/core';
+ *
+ * // Generate identifiers
+ * const id = crypto.uuid();
+ * const token = crypto.randomBytes(32);
+ *
+ * // Hash and verify
+ * const hash = crypto.hash("sha256", password + salt);
+ * const isValid = crypto.compare(storedHash, hash);
+ *
+ * // Base64 encoding
+ * const encoded = crypto.base64.encode("Hello World");
+ * const decoded = crypto.base64.decode(encoded);
+ *
+ * // HMAC for webhooks
+ * const signature = crypto.hashKeyed("hmac-sha256", secret, payload);
+ *
+ * // Encryption
+ * const encrypted = crypto.encrypt("aes-256-gcm", key, "secret");
+ * const decrypted = crypto.decrypt("aes-256-gcm", key, encrypted);
+ * ```
+ *
+ * @see https://github.com/ezet-galaxy/-titanpl-core#crypto-cryptography
+ */
 export declare const crypto: TitanCore.Crypto;
 
-/** Operating System module */
+/**
+ * # Operating System Module
+ *
+ * System information about the host machine. All methods are **synchronous**.
+ *
+ * **Methods:**
+ * - `platform()` — OS identifier ("linux", "darwin", "windows")
+ * - `cpus()` — Number of CPU cores
+ * - `totalMemory()` — Total RAM in bytes
+ * - `freeMemory()` — Available RAM in bytes
+ * - `tmpdir()` — Temporary directory path
+ *
+ * @example
+ * ```js
+ * import { os } from '@titanpl/core';
+ *
+ * console.log({
+ *     platform: os.platform(),
+ *     cpus: os.cpus(),
+ *     totalMemory: os.totalMemory() / (1024 ** 3) + " GB",
+ *     freeMemory: os.freeMemory() / (1024 ** 3) + " GB",
+ *     tmpdir: os.tmpdir()
+ * });
+ * ```
+ *
+ * @see https://github.com/ezet-galaxy/-titanpl-core#os-operating-system
+ */
 export declare const os: TitanCore.OS;
 
-/** Network module */
+/**
+ * # Network Module
+ *
+ * Network utilities for DNS and IP operations. All methods are **synchronous**.
+ *
+ * **Methods:**
+ * - `resolveDNS(hostname)` — Resolve hostname to IPs
+ * - `ip()` — Get local IP address
+ * - `ping(host)` — Check if host is reachable
+ *
+ * @example
+ * ```js
+ * import { net } from '@titanpl/core';
+ *
+ * const ips = net.resolveDNS("github.com");
+ * const localIp = net.ip();
+ * const reachable = net.ping("8.8.8.8");
+ * ```
+ *
+ * @see https://github.com/ezet-galaxy/-titanpl-core#net-network
+ */
 export declare const net: TitanCore.Net;
 
-/** Process module */
+/**
+ * # Process Module
+ *
+ * Runtime process information and subprocess management.
+ * All methods are **synchronous**.
+ *
+ * **Methods:**
+ * - `pid()` — Process ID
+ * - `uptime()` — Uptime in seconds
+ * - `memory()` — Memory usage stats
+ * - `run(cmd, args, cwd)` — Spawn subprocess
+ * - `kill(pid)` — Terminate process
+ * - `list()` — List running processes
+ *
+ * @example
+ * ```js
+ * import { proc } from '@titanpl/core';
+ *
+ * console.log({
+ *     pid: proc.pid(),
+ *     uptime: proc.uptime() + " seconds",
+ *     memory: proc.memory()
+ * });
+ *
+ * // Spawn subprocess
+ * const result = proc.run("node", ["script.js"], "./scripts");
+ * if (result.ok) {
+ *     console.log("Spawned PID:", result.pid);
+ * }
+ * ```
+ *
+ * @see https://github.com/ezet-galaxy/-titanpl-core#proc-process
+ */
 export declare const proc: TitanCore.Process;
 
-/** Time module */
+/**
+ * # Time Module
+ *
+ * Time utilities including sleep, timestamps, and timing.
+ * All methods are **synchronous**.
+ *
+ * **Methods:**
+ * - `now()` — Current timestamp in milliseconds
+ * - `timestamp()` — ISO 8601 timestamp string
+ * - `sleep(ms)` — Blocking sleep
+ *
+ * @example
+ * ```js
+ * import { time } from '@titanpl/core';
+ *
+ * // Measure execution time
+ * const start = time.now();
+ * performOperation();
+ * console.log(`Took ${time.now() - start}ms`);
+ *
+ * // Get ISO timestamp
+ * const ts = time.timestamp();
+ * // → "2026-01-15T12:30:45.123Z"
+ *
+ * // Rate limiting
+ * time.sleep(100); // Wait 100ms
+ * ```
+ *
+ * @see https://github.com/ezet-galaxy/-titanpl-core#time-time
+ */
 export declare const time: TitanCore.Time;
 
 /**
-* URL API - Robust URL parsing and construction.
-* 
-* compliant URL parser that breaks down protocols, hostnames, and query parameters.
-* 
-* @use Parsing incoming request URLs, building outgoing fetch URLs.
-*/
+ * # URL Module
+ *
+ * URL parsing, formatting, and query string manipulation.
+ * All methods are **synchronous**.
+ *
+ * **Methods:**
+ * - `parse(url)` — Parse URL to components
+ * - `format(urlObj)` — Build URL from components
+ * - `SearchParams` — Query string class
+ *
+ * @example
+ * ```js
+ * import { url } from '@titanpl/core';
+ *
+ * // Parse URL
+ * const parsed = url.parse("https://api.example.com:8080/users?page=2");
+ * // → { protocol: "https:", hostname: "api.example.com", ... }
+ *
+ * // Build URL
+ * const built = url.format({
+ *     protocol: "https:",
+ *     hostname: "api.example.com",
+ *     pathname: "/v2/users"
+ * });
+ *
+ * // Query strings
+ * const params = new url.SearchParams({ page: "1", limit: "20" });
+ * params.set("sort", "name");
+ * console.log(params.toString()); // → "page=1&limit=20&sort=name"
+ * ```
+ *
+ * @see https://github.com/ezet-galaxy/-titanpl-core#url-url
+ */
 export declare const url: TitanCore.URLModule;
 
-
-
-/** Buffer module */
+/**
+ * # Buffer Module
+ *
+ * Binary data encoding and decoding utilities. All methods are **synchronous**.
+ *
+ * **Methods:**
+ * - `toBase64(data)` / `fromBase64(str)` — Base64 encoding
+ * - `toHex(data)` / `fromHex(str)` — Hex encoding
+ * - `toUtf8(bytes)` / `fromUtf8(str)` — UTF-8 encoding
+ *
+ * @example
+ * ```js
+ * import { buffer } from '@titanpl/core';
+ *
+ * // Base64
+ * const b64 = buffer.toBase64("Hello, World!");
+ * const decoded = buffer.toUtf8(buffer.fromBase64(b64));
+ *
+ * // Hex
+ * const hex = buffer.toHex("Hello");
+ * // → "48656c6c6f"
+ * ```
+ *
+ * @see https://github.com/ezet-galaxy/-titanpl-core#buffer-buffer-utilities
+ */
 export declare const buffer: TitanCore.BufferModule;
 
 /**
-* Local Storage API - High-performance in-memory key-value store.
-* 
-* **Performance:** ~150,000+ operations/sec.
-* 
-* - ⚡ RwLock<HashMap> implementation (~0.006ms per read)
-* - 🚀 ~1000x faster than file-based storage
- * - 💾 In-memory only (volatile)
- * - 📦 **New:** Supports V8 Serialization (store Maps, Sets, Dates, etc.)
- * 
- * @use Perfect for caching frequently accessed data and complex objects within a single process.
- * @suggestion Use `setObject`/`getObject` for complex data structures to maintain types.
-*/
+ * # Local Storage Module
+ *
+ * High-performance in-memory key-value store. All methods are **synchronous**.
+ *
+ * **Performance:** ~150,000+ ops/sec (native Rust RwLock<HashMap>)
+ *
+ * **Methods:**
+ * - `get(key)` / `set(key, value)` — String storage
+ * - `getObject(key)` / `setObject(key, value)` — Complex object storage
+ * - `remove(key)` / `clear()` — Deletion
+ * - `keys()` — List all keys
+ * - `serialize(value)` / `deserialize(bytes)` — V8 serialization
+ *
+ * @example
+ * ```js
+ * import { ls } from '@titanpl/core';
+ *
+ * // String storage
+ * ls.set("user:123", JSON.stringify({ name: "Alice" }));
+ * const user = JSON.parse(ls.get("user:123") || "{}");
+ *
+ * // Complex objects (preserves Map, Set, Date)
+ * const data = {
+ *     users: new Map([["alice", { role: "admin" }]]),
+ *     tags: new Set(["active"]),
+ *     created: new Date()
+ * };
+ * ls.setObject("session", data);
+ * const restored = ls.getObject("session");
+ * // restored.users instanceof Map → true
+ *
+ * // Cleanup
+ * ls.remove("user:123");
+ * ls.clear();
+ * ```
+ *
+ * @see https://github.com/ezet-galaxy/-titanpl-core#ls--localstorage-persistent-storage
+ */
 export declare const ls: TitanCore.LocalStorage;
 
-/** Session module */
+/**
+ * # Local Storage Module (Alias)
+ *
+ * Alias for `ls` — same high-performance key-value store.
+ *
+ * @see {@link ls}
+ * @see https://github.com/ezet-galaxy/-titanpl-core#ls--localstorage-persistent-storage
+ */
+export declare const localStorage: TitanCore.LocalStorage;
+
+/**
+ * # Session Module
+ *
+ * Server-side session state management. All methods are **synchronous**.
+ *
+ * Uses composite keys (`{sessionId}:{key}`) for session isolation.
+ *
+ * **Methods:**
+ * - `get(sessionId, key)` — Get session value
+ * - `set(sessionId, key, value)` — Set session value
+ * - `delete(sessionId, key)` — Delete session key
+ * - `clear(sessionId)` — Clear entire session
+ *
+ * @example
+ * ```js
+ * import { session, crypto, cookies } from '@titanpl/core';
+ *
+ * export function handleRequest(req) {
+ *     // Get or create session ID
+ *     let sessionId = cookies.get(req, "sid");
+ *     if (!sessionId) {
+ *         sessionId = crypto.uuid();
+ *         cookies.set(req, "sid", sessionId, { httpOnly: true });
+ *     }
+ *
+ *     // Store user data
+ *     session.set(sessionId, "userId", "123");
+ *     session.set(sessionId, "cart", JSON.stringify([1, 2, 3]));
+ *
+ *     // Retrieve data
+ *     const cart = JSON.parse(session.get(sessionId, "cart") || "[]");
+ *
+ *     // Logout
+ *     session.clear(sessionId);
+ * }
+ * ```
+ *
+ * @see https://github.com/ezet-galaxy/-titanpl-core#session-server-side-sessions
+ */
 export declare const session: TitanCore.Session;
 
-/** Cookies module */
+/**
+ * # Cookies Module
+ *
+ * HTTP cookie parsing and setting utilities.
+ *
+ * **Methods:**
+ * - `get(req, name)` — Read cookie from request
+ * - `set(res, name, value, options)` — Set cookie on response
+ * - `delete(res, name)` — Delete cookie
+ *
+ * **Options:** `httpOnly`, `secure`, `sameSite`, `maxAge`, `path`
+ *
+ * @example
+ * ```js
+ * import { cookies, crypto } from '@titanpl/core';
+ *
+ * export function auth(req) {
+ *     // Read cookie
+ *     const token = cookies.get(req, "auth_token");
+ *
+ *     if (!token) {
+ *         // Set secure cookie
+ *         cookies.set(req, "auth_token", crypto.uuid(), {
+ *             httpOnly: true,
+ *             secure: true,
+ *             sameSite: "Strict",
+ *             maxAge: 86400 * 7, // 7 days
+ *             path: "/"
+ *         });
+ *     }
+ *
+ *     // Delete cookie (logout)
+ *     cookies.delete(req, "auth_token");
+ * }
+ * ```
+ *
+ * @see https://github.com/ezet-galaxy/-titanpl-core#cookies-http-cookies
+ */
 export declare const cookies: TitanCore.Cookies;
 
-/** Response builder module */
+/**
+ * # Response Module
+ *
+ * HTTP response builder for controlled response formatting.
+ *
+ * **Methods:**
+ * - `response(options)` — Custom response
+ * - `response.json(data, options?)` — JSON response
+ * - `response.html(content, options?)` — HTML response
+ * - `response.text(content, options?)` — Plain text response
+ * - `response.redirect(url, status?)` — Redirect response
+ * - `response.empty(status?)` — Empty response (204)
+ *
+ * @example
+ * ```js
+ * import { response, fs } from '@titanpl/core';
+ *
+ * // JSON response
+ * export function getUsers(req) {
+ *     return response.json({ users: [], total: 0 });
+ * }
+ *
+ * // Error response
+ * export function notFound(req) {
+ *     return response.json({ error: "Not found" }, { status: 404 });
+ * }
+ *
+ * // HTML response
+ * export function home(req) {
+ *     const html = fs.readFile("./views/index.html");
+ *     return response.html(html);
+ * }
+ *
+ * // Redirect
+ * export function legacy(req) {
+ *     return response.redirect("/api/v2/users", 301);
+ * }
+ *
+ * // Custom response with headers
+ * export function download(req) {
+ *     return response({
+ *         status: 200,
+ *         headers: {
+ *             "Content-Type": "text/csv",
+ *             "Content-Disposition": "attachment; filename=\"data.csv\""
+ *         },
+ *         body: fs.readFile("./export.csv")
+ *     });
+ * }
+ *
+ * // Empty response (after DELETE)
+ * export function deleteUser(req) {
+ *     removeUser(req.params.id);
+ *     return response.empty();
+ * }
+ * ```
+ *
+ * @see https://titan-docs-ez.vercel.app/docs/04-runtime-apis
+ */
 export declare const response: TitanCore.ResponseModule;
 
 /**
- * Core namespace - Unified access to all APIs
+ * # Core Module
+ *
+ * Unified namespace providing access to all @titanpl/core APIs.
+ * Useful for destructuring multiple modules at once.
+ *
+ * @example
+ * ```js
+ * import { core } from '@titanpl/core';
+ *
+ * // Destructure what you need
+ * const { fs, crypto, os, response } = core;
+ *
+ * // Or access directly
+ * const config = JSON.parse(core.fs.readFile("./config.json"));
+ * const id = core.crypto.uuid();
+ * ```
+ *
+ * @see https://github.com/ezet-galaxy/-titanpl-core
  */
 export declare const core: TitanCore.Core;
-
-/**
- * # Drift - Orchestration Engine
- * 
- * Revolutionary system for high-performance asynchronous operations using a **Deterministic Replay-based Suspension** model.
- * 
- * ## Mechanism
- * Drift utilizes a suspension model similar to **Algebraic Effects**. When a `drift()` operation is encountered, 
- * the runtime suspends the isolate, offloads the task to the background Tokio executor, and frees the isolate 
- * to handle other requests. Upon completion, the code is efficiently **re-played** with the result injected.
- * 
- * @param promise - The promise or expression to drift.
- * @returns The resolved value of the input promise.
- * 
- * @example
- * ```javascript
- * const resp = drift(t.fetch("http://api.titan.com"));
- * console.log(resp.body);
- * ```
- */
-function drift<T>(promise: Promise<T> | T): T;
-
-/**
- * Titan Core Global Namespace
- */
-namespace TitanCore {
-    /**
-     * Core module containing all standard library APIs
-     */
-    interface Core {
-        fs: FileSystem;
-        path: Path;
-        crypto: Crypto;
-        os: OS;
-        net: Net;
-        proc: Process;
-        time: Time;
-        url: URLModule;
-        buffer: BufferModule;
-        ls: LocalStorage;
-        session: Session;
-        cookies: Cookies;
-        response: ResponseModule;
-    }
-
-    // ==================== File System ====================
-
-    /**
-     * File System API - Native file operations backed by Rust
-     */
-    interface FileSystem {
-        /**
-         * Read file content as UTF-8 string.
-         * @param path File path.
-         */
-        readFile(path: string): string;
-
-        /**
-         * Write string content to file.
-         * @param path Target file path.
-         * @param content String content to write.
-         */
-        writeFile(path: string, content: string): void;
-
-        /**
-         * List directory contents.
-         * @param path Directory path.
-         */
-        readdir(path: string): string[];
-
-        /**
-         * Create a directory (recursive).
-         * @param path Directory path to create.
-         */
-        mkdir(path: string): void;
-
-        /**
-         * Check if path exists.
-         * @param path Path to check.
-         */
-        exists(path: string): boolean;
-
-        /**
-         * Get file statistics.
-         * @param path Path to stat.
-         * @returns Statistics object `{ type: "file" | "directory", size: number }`.
-         */
-        stat(path: string): Stats;
-
-        /**
-         * Remove file or directory (recursive).
-         * @param path Path to remove.
-         */
-        remove(path: string): void;
-    }
-
-    /**
-     * File/directory statistics
-     */
-    interface Stats {
-        /** File size in bytes */
-        size: number;
-        /** True if path is a file */
-        isFile: boolean;
-        /** True if path is a directory */
-        isDir: boolean;
-        /** Last modified timestamp (milliseconds since epoch) */
-        modified: number;
-    }
-
-    // ==================== Path ====================
-
-    /**
-     * Path API - Cross-platform path manipulation
-     */
-    interface Path {
-        /**
-         * Joins path segments using platform-specific separator
-         * @param args - Path segments to join
-         * @returns Joined path
-         * @example
-         * ```typescript
-         * t.path.join('app', 'actions', 'test.js') // "app/actions/test.js"
-         * ```
-         */
-        join(...args: string[]): string;
-
-        /**
-         * Resolves path segments to an absolute path
-         * @param args - Path segments to resolve
-         * @returns Absolute path
-         */
-        resolve(...args: string[]): string;
-
-        /**
-         * Returns the file extension including the dot
-         * @param path - File path
-         * @returns Extension (e.g., ".js", ".json") or empty string
-         */
-        extname(path: string): string;
-
-        /**
-         * Returns the directory name of a path
-         * @param path - File or directory path
-         * @returns Parent directory path
-         */
-        dirname(path: string): string;
-
-        /**
-         * Returns the last portion of a path (filename)
-         * @param path - Path to extract basename from
-         * @returns Filename or directory name
-         */
-        basename(path: string): string;
-    }
-
-    // ==================== Crypto ====================
-
-    /**
-     * Cryptography API - Hashing, encryption, and random generation
-     */
-    interface Crypto {
-        /**
-         * Hash data.
-         * @param algorithm Algorithm to use: `sha256`, `sha512`, `md5`.
-         * @param data Data to hash.
-         */
-        hash(algorithm: 'sha256' | 'sha512' | 'md5', data: string): string;
-
-        /**
-         * Generate random bytes as hex string.
-         * @param size Number of bytes.
-         */
-        randomBytes(size: number): string;
-
-        /**
-         * Generate a UUID v4.
-         */
-        uuid(): string;
-
-        /**
-         * Constant-time comparison to prevent timing attacks.
-         * @param hash The reference hash.
-         * @param target The hash to compare against.
-         */
-        compare(hash: string, target: string): boolean;
-
-        /**
-         * AES-256-GCM Encrypt.
-         * @param algorithm Encryption algorithm.
-         * @param key 32-byte key.
-         * @param plaintext Data to encrypt.
-         * @returns Base64 encoded ciphertext.
-         */
-        encrypt(algorithm: string, key: string, plaintext: string): string;
-
-        /**
-         * AES-256-GCM Decrypt.
-         * @param algorithm Decryption algorithm.
-         * @param key Matching 32-byte key.
-         * @param ciphertext Base64 encoded ciphertext.
-         */
-        decrypt(algorithm: string, key: string, ciphertext: string): string;
-
-        /**
-         * HMAC calculation.
-         * @param algorithm `hmac-sha256` or `hmac-sha512`.
-         * @param key Secret key.
-         * @param message Message to sign.
-         */
-        hashKeyed(algorithm: 'hmac-sha256' | 'hmac-sha512', key: string, message: string): string;
-    }
-
-    // ==================== OS ====================
-
-    /**
-     * Operating System API - System information
-     */
-    interface OS {
-        /** OS platform (e.g., `linux`, `windows`). */
-        platform(): string;
-        /** Number of CPU cores. */
-        cpus(): number;
-        /** Total system memory in bytes. */
-        totalMemory(): number;
-        /** Free system memory in bytes. */
-        freeMemory(): number;
-        /** Temporary directory path. */
-        tmpdir(): string;
-    }
-
-    // ==================== Network ====================
-
-    /**
-     * Network API - DNS resolution and IP utilities
-     */
-    interface Net {
-        /** Resolve hostname to IP addresses. */
-        resolveDNS(hostname: string): string[];
-        /** Get local IP address. */
-        ip(): string;
-        /** Ping (not fully implemented). */
-        ping(host: string): boolean;
-    }
-
-    // ==================== Process ====================
-
-    /**
-     * Process API - Runtime process information
-     */
-    interface Process {
-        /** Process ID. */
-        pid(): number;
-        /** System uptime in seconds. */
-        uptime(): number;
-        /** Memory usage statistics. */
-        memory(): Record<string, any>;
-        /**
-         * Spawn a subprocess.
-         * @param command The executable to run.
-         * @param args Arguments to pass.
-         * @returns Object containing the PID of the spawned process, e.g. `{ pid: 1234 }`.
-         */
-        run(command: string, args: string[], cwd?: string): { ok: boolean, pid: number, cwd: string };
-
-        /**
-         * Kill a process by PID.
-         * @param pid Process ID to kill.
-         * @returns True if the signal was sent successfully.
-         */
-        kill(pid: number): boolean;
-
-        /**
-         * List running processes.
-         * @returns Array of process information objects.
-         */
-        list(): Array<{ pid: number, name: string, cmd: string, cpu?: number, memory?: number }>;
-    }
-
-    // ==================== Time ====================
-
-    /**
-     * Time API - Time utilities and delays
-     */
-    interface Time {
-        /** Sleep for specified milliseconds. */
-        sleep(ms: number): void;
-        /** Current timestamp (ms). */
-        now(): number;
-        /** Current ISO timestamp. */
-        timestamp(): string;
-    }
-
-    // ==================== URL ====================
-
-    /**
-     * URL API - URL parsing and manipulation
-     */
-    interface URLModule {
-        /**
-         * Parses a URL string into components
-         * @param url - URL string to parse
-         * @returns Parsed URL object
-         */
-        parse(url: string): UrlObject;
-
-        /**
-         * Formats a URL object into a string
-         * @param urlObj - URL object to format
-         * @returns URL string
-         */
-        format(urlObj: any): string;
-
-        /**
-         * URLSearchParams constructor
-         */
-        SearchParams: typeof TitanURLSearchParams;
-    }
-
-    /**
-     * Parsed URL components
-     */
-    interface UrlObject {
-        protocol: string;
-        hostname: string;
-        port: string;
-        pathname: string;
-        search: string;
-        hash: string;
-    }
-
-    /**
-     * URLSearchParams - Query string parsing and manipulation
-     */
-    class TitanURLSearchParams {
-        constructor(init?: string | Record<string, string>);
-
-        /**
-         * Gets a query parameter value
-         * @param key - Parameter name
-         * @returns Parameter value or null
-         */
-        get(key: string): string | null;
-
-        /**
-         * Sets a query parameter
-         * @param key - Parameter name
-         * @param value - Parameter value
-         */
-        set(key: string, value: string): void;
-
-        /**
-         * Checks if parameter exists
-         * @param key - Parameter name
-         * @returns true if exists
-         */
-        has(key: string): boolean;
-
-        /**
-         * Deletes a query parameter
-         * @param key - Parameter name
-         */
-        delete(key: string): void;
-
-        /**
-         * Converts to query string
-         * @returns URL-encoded query string
-         */
-        toString(): string;
-
-        /**
-         * Returns all key-value pairs
-         * @returns Array of [key, value] tuples
-         */
-        entries(): [string, string][];
-
-        /**
-         * Returns all parameter names
-         * @returns Array of keys
-         */
-        keys(): string[];
-
-        /**
-         * Returns all parameter values
-         * @returns Array of values
-         */
-        values(): string[];
-    }
-
-    // ==================== Buffer ====================
-
-    /**
-     * Buffer API - Binary data encoding and decoding
-     */
-    interface BufferModule {
-        /** Decode Base64 string. */
-        fromBase64(str: string): Uint8Array;
-        /** Encode to Base64. */
-        toBase64(bytes: Uint8Array | string): string;
-        /** Decode Hex string. */
-        fromHex(str: string): Uint8Array;
-        /** Encode to Hex. */
-        toHex(bytes: Uint8Array | string): string;
-        /** Encode UTF-8 string to bytes. */
-        fromUtf8(str: string): Uint8Array;
-        /** Decode bytes to UTF-8 string. */
-        toUtf8(bytes: Uint8Array): string;
-    }
-
-    // ==================== Local Storage ====================
-
-    /**
-     * Local Storage API - High-performance in-memory key-value store
-     * 
-     * **Implementation:** Native Rust RwLock<HashMap>
-     * 
-     * **Performance Benchmarks (10,000 operations):**
-     * - 📖 Read: ~156,250 ops/sec (0.0064ms avg)
-     * - ✍️ Write: ~89,286 ops/sec (0.0112ms avg)
-     * - 🔄 Mixed: ~125,000 ops/sec (0.008ms avg)
-     * 
-     * **Characteristics:**
-     * - ⚡ ~1000x faster than file-based storage
-     * - 💾 In-memory only (data lost on server restart)
-     * - 🔒 Thread-safe with RwLock (multiple readers, single writer)
-     * - 🚫 Not shared across multiple processes
-     * 
-     * **Use Cases:**
-     * - Request-scoped state sharing
-     * - Temporary caching within a process
-     * - High-frequency read/write operations
-     * 
-     * @example
-     * ```typescript
-     * // Store user data temporarily
-     * t.ls.set('user:123', JSON.stringify({ name: 'Alice', role: 'admin' }));
-     * 
-     * // Retrieve and parse
-     * const userData = JSON.parse(t.ls.get('user:123') || '{}');
-     * 
-     * // Check all keys
-     * const allKeys = t.ls.keys(); // ['user:123', ...]
-     * 
-     * // Clean up
-     * t.ls.remove('user:123');
-     * t.ls.clear(); // Remove all data
-     * ```
-     */
-    interface LocalStorage {
-        /** Get value. */
-        get(key: string): string | null;
-        /** Set value. */
-        set(key: string, value: string): void;
-        /** Remove key. */
-        remove(key: string): void;
-        /** Clear all storage. */
-        clear(): void;
-        /** List all keys. */
-        keys(): string[];
-        /** Stores a complex JavaScript object using V8 serialization and Base64 encoding. */
-        setObject(key: string, value: any): void;
-        /** Retrieves and deserializes a complex JavaScript object. Returns null if not found or invalid. */
-        getObject<T = any>(key: string): T | null;
-
-        /**
-         * Serialize a JavaScript value to a V8-compatible binary format.
-         * 
-         * **Features:**
-         * - Supports Map, Set, Date, RegExp, BigInt, TypedArray
-         * - Supports Circular references
-         * - ~50x faster than JSON.stringify
-         * 
-         * @param value The value to serialize.
-         */
-        serialize(value: any): Uint8Array;
-
-        /**
-         * Deserialize a V8-compatible binary format back to a JavaScript value.
-         * 
-         * @param bytes The binary data to deserialize.
-         */
-        deserialize(bytes: Uint8Array): any;
-
-        /**
-         * Register a class for hydration/serialization support.
-         */
-        register(ClassRef: Function, hydrateFn?: Function, typeName?: string): void;
-
-        /**
-         * Hydrate a custom object from data.
-         */
-        hydrate(typeName: string, data: object): any;
-
-    }
-
-    // ==================== Session ====================
-
-    /**
-     * Session API - High-performance session state management
-     * 
-     * **Implementation:** Native Rust RwLock<HashMap> with composite keys
-     * 
-     * **Performance:** Same as LocalStorage (~89K-156K ops/sec)
-     * 
-     * **Characteristics:**
-     * - 🔐 Session-scoped storage (isolated per session ID)
-     * - ⚡ Sub-millisecond operations
-     * - 💾 In-memory only (not persistent)
-     * - 🔑 Composite key format: `{sessionId}:{key}`
-     * 
-     * @example
-     * ```typescript
-     * // Store shopping cart for session
-     * const sessionId = 'sess_abc123';
-     * t.session.set(sessionId, 'cart', JSON.stringify([1, 2, 3]));
-     * 
-     * // Retrieve cart
-     * const cart = JSON.parse(t.session.get(sessionId, 'cart') || '[]');
-     * 
-     * // Clear entire session
-     * t.session.clear(sessionId);
-     * ```
-     */
-    interface Session {
-        /** Get session value. */
-        get(sessionId: string, key: string): string | null;
-        /** Set session value. */
-        set(sessionId: string, key: string, value: string): void;
-        /** Delete session value. */
-        delete(sessionId: string, key: string): void;
-        /** Clear entire session. */
-        clear(sessionId: string): void;
-    }
-
-    // ==================== Cookies ====================
-
-    /**
-     * Cookie API - HTTP cookie parsing and setting
-     */
-    interface Cookies {
-        /** Parse cookie from request headers. */
-        get(req: any, name: string): string | null;
-        /** Set Set-Cookie header on response. Options: `{ httpOnly, secure, sameSite, path, maxAge }`. */
-        set(res: any, name: string, value: string, options?: CookieOptions): void;
-        /** Delete cookie (expire). */
-        delete(res: any, name: string): void;
-    }
-
-    /**
-     * Cookie configuration options
-     */
-    interface CookieOptions {
-        /** Maximum age in seconds */
-        maxAge?: number;
-        /** Cookie path (default: "/") */
-        path?: string;
-        /** HTTP-only flag (prevents JavaScript access) */
-        httpOnly?: boolean;
-        /** Secure flag (HTTPS only) */
-        secure?: boolean;
-        /** SameSite policy: "Strict", "Lax", or "None" */
-        sameSite?: 'Strict' | 'Lax' | 'None';
-    }
-
-    // ==================== Response ====================
-
-    /**
-     * Response API - Advanced HTTP Response Control
-     */
-    interface ResponseModule {
-        /**
-         * Construct a fully custom ResponseObject.
-         */
-        (options: ResponseOptions): ResponseObject;
-
-        /**
-         * Send plain UTF-8 text.
-         * Automatically sets `Content-Type: text/plain; charset=utf-8`.
-         * @param content Content to send.
-         * @param status HTTP status code.
-         */
-        text(content: string, status?: number): ResponseObject;
-
-        /**
-         * Send an HTML document.
-         * Automatically sets `Content-Type: text/html; charset=utf-8`.
-         * @param content HTML content.
-         * @param status HTTP status code.
-         */
-        html(content: string, status?: number): ResponseObject;
-
-        /**
-         * Send JSON-encoded data from a JavaScript object.
-         * Automatically sets `Content-Type: application/json`.
-         * @param content JSON-serializable object.
-         * @param status HTTP status code.
-         */
-        json(content: any, status?: number): ResponseObject;
-
-        /**
-         * Create a Redirect response.
-         * @param url Target URL.
-         * @param status HTTP status (default: 302).
-         */
-        redirect(url: string, status?: number): ResponseObject;
-
-        /**
-         * Create an empty response.
-         * @param status HTTP status (default: 204).
-         */
-        empty(status?: number): ResponseObject;
-    }
-
-    /**
-     * Options for customizing the response
-     */
-    interface ResponseOptions {
-        /** HTTP Status Code (e.g., 200, 404, 500) */
-        status?: number;
-        /** Custom HTTP Headers */
-        headers?: Record<string, string>;
-        /** Response Body */
-        body?: string;
-    }
-
-    /**
-     * Standardized Response Object consumed by the Titan Rust HTTP server.
-     */
-    interface ResponseObject {
-        type: "response";
-        status: number;
-        headers: Record<string, string>;
-        body: string;
-    }
-}
-
-export { };
