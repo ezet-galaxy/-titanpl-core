@@ -131,4 +131,4 @@ Helper for constructing standardized Titan responses.
 This extension includes native Rust bindings for high-performance operations. The native binary is automatically loaded by the Titan Runtime during initialization.
 
 ## License
-MIT
+ISC
