@@ -109,7 +109,16 @@ function local_utf8_decode(bytes) {
 
 
 // Native bindings are loaded by the runtime into t["@titanpl/core"]
-const natives = t["@titanpl/core"] || {};
+const getT = () => {
+    if (typeof t !== 'undefined') return t;
+    if (typeof globalThis !== 'undefined' && globalThis.t) return globalThis.t;
+    return null;
+};
+const _t = getT();
+if (!_t) {
+    console.warn("[TitanCore] 't' global not found during initialization.");
+}
+const natives = (_t && _t["@titanpl/core"]) || {};
 
 console.log("[TitanCore] Available natives:", Object.keys(natives));
 
@@ -693,35 +702,33 @@ const core = {
     response
 };
 
-t.fs = fs;
-t.path = path;
-t.crypto = crypto;
-t.os = os;
-t.net = net;
-t.proc = proc;
-t.time = time;
-t.url = url;
-
-
-// New Global Modules
-t.buffer = buffer;
-t.ls = ls;
-t.localStorage = ls;
-t.session = session;
-t.cookies = cookies;
-t.response = response;
-
 // Attach core as unified namespace (main access point)
-t.core = core;
+if (_t) {
+    _t.core = core;
+    _t.fs = fs;
+    _t.path = path;
+    _t.crypto = crypto;
+    _t.os = os;
+    _t.net = net;
+    _t.proc = proc;
+    _t.time = time;
+    _t.url = url;
+    _t.buffer = buffer;
+    _t.ls = ls;
+    _t.localStorage = ls;
+    _t.session = session;
+    _t.cookies = cookies;
+    _t.response = response;
 
-// Register as extension under multiple names for compatibility
-t["titan-core"] = core;
-t["@titanpl/core"] = core;
+    // Register as extension under multiple names for compatibility
+    _t["titan-core"] = core;
+    _t["@titanpl/core"] = core;
 
-// Also register in t.exts
-if (!t.exts) t.exts = {};
-t.exts["titan-core"] = core;
-t.exts["@titanpl/core"] = core;
+    // Also register in t.exts
+    if (!_t.exts) _t.exts = {};
+    _t.exts["titan-core"] = core;
+    _t.exts["@titanpl/core"] = core;
+}
 
 export {
     // Modules
@@ -738,6 +745,7 @@ export {
     session,
     cookies,
     response,
+    core,
 
     // Classes
     TitanURLSearchParams,

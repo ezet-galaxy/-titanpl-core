@@ -17,8 +17,7 @@ impl v8::ValueSerializerImpl for TitanValueSerializerDelegate {
 struct TitanValueDeserializerDelegate;
 impl v8::ValueDeserializerImpl for TitanValueDeserializerDelegate {}
 
-#[no_mangle]
-pub extern "C" fn native_serialize(
+pub fn native_serialize(
     scope: &mut v8::HandleScope,
     args: v8::FunctionCallbackArguments,
     mut retval: v8::ReturnValue,
@@ -49,8 +48,7 @@ pub extern "C" fn native_serialize(
     }
 }
 
-#[no_mangle]
-pub extern "C" fn native_deserialize(
+pub fn native_deserialize(
     scope: &mut v8::HandleScope,
     args: v8::FunctionCallbackArguments,
     mut retval: v8::ReturnValue,

@@ -10,6 +10,26 @@ mod storage_impl;
 mod crypto_impl;
 mod v8_impl;
 
+// --- V8 Serialization ---
+
+#[no_mangle]
+pub extern "C" fn native_serialize(
+    scope: &mut v8::HandleScope,
+    args: v8::FunctionCallbackArguments,
+    retval: v8::ReturnValue,
+) {
+    v8_impl::native_serialize(scope, args, retval)
+}
+
+#[no_mangle]
+pub extern "C" fn native_deserialize(
+    scope: &mut v8::HandleScope,
+    args: v8::FunctionCallbackArguments,
+    retval: v8::ReturnValue,
+) {
+    v8_impl::native_deserialize(scope, args, retval)
+}
+
 // --- Helper Functions ---
 
 fn ptr_to_string(ptr: *const c_char) -> String {
@@ -114,6 +134,102 @@ pub extern "C" fn path_cwd() -> *mut c_char {
         Ok(p) => string_to_ptr(p.to_string_lossy().into_owned()),
         Err(_) => string_to_ptr(String::new()),
     }
+}
+
+// --- Proc ---
+#[no_mangle]
+pub extern "C" fn proc_info() -> *mut c_char {
+    let info = serde_json::json!({
+        "pid": std::process::id(),
+        "uptime": 0, // difficult to get comfortably x-platform without more crates
+    });
+    string_to_ptr(info.to_string())
+}
+
+#[no_mangle]
+pub extern "C" fn proc_run(
+    command: *const c_char,
+    options_json: *const c_char,
+) -> *mut c_char {
+    let cmd = ptr_to_string(command);
+    let options_str = ptr_to_string(options_json);
+
+    let options: serde_json::Value = 
+        serde_json::from_str(&options_str).unwrap_or(serde_json::json!({}));
+    
+    let args: Vec<String> = options["args"]
+        .as_array()
+        .map(|arr| arr.iter().map(|v| v.as_str().unwrap_or("").to_string()).collect())
+        .unwrap_or_default();
+        
+    let cwd_str = options["cwd"].as_str().unwrap_or("");
+
+    let cwd_res = if cwd_str.is_empty() {
+        std::env::current_dir()
+    } else {
+        let p = std::path::Path::new(cwd_str);
+        if p.is_absolute() {
+            Ok(p.to_path_buf())
+        } else {
+            std::env::current_dir().map(|d| d.join(p))
+        }
+    };
+
+    let cwd = match cwd_res {
+        Ok(c) => c,
+        Err(e) => return string_to_ptr(format!("ERROR: Failed to resolve CWD: {}", e)),
+    };
+
+    let mut command = std::process::Command::new(cmd);
+    command.args(args);
+    command.current_dir(&cwd);
+    command.stdin(std::process::Stdio::null());
+    command.stdout(std::process::Stdio::null());
+    command.stderr(std::process::Stdio::null());
+
+    match command.spawn() {
+        Ok(child) => {
+            let res = serde_json::json!({
+                "ok": true,
+                "pid": child.id(),
+                "cwd": cwd
+            });
+            string_to_ptr(res.to_string())
+        }
+        Err(e) => {
+            string_to_ptr(format!("ERROR: Spawn failed: {}", e))
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn proc_kill(pid: f64) -> bool {
+    let pid_int = pid as usize;
+    use sysinfo::{System, Pid};
+    let s = System::new_all();
+    let pid = Pid::from(pid_int);
+    if let Some(process) = s.process(pid) {
+        process.kill()
+    } else {
+        false
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn proc_list() -> *mut c_char {
+    use sysinfo::System;
+    let mut s = System::new_all();
+    s.refresh_processes();
+    let processes: Vec<serde_json::Value> = s.processes().iter().map(|(pid, process)| {
+        serde_json::json!({
+            "pid": pid.as_u32(), 
+            "name": process.name(),
+            "cmd": process.cmd(),
+            "memory": process.memory(),
+            "cpu": process.cpu_usage(),
+        })
+    }).collect();
+    string_to_ptr(serde_json::to_string(&processes).unwrap_or("[]".to_string()))
 }
 
 // --- Crypto ---
@@ -270,112 +386,6 @@ pub extern "C" fn net_ip() -> *mut c_char {
         Ok(ip) => string_to_ptr(ip.to_string()),
         Err(_) => string_to_ptr("127.0.0.1".to_string()),
     }
-}
-
-// --- Proc ---
-#[no_mangle]
-pub extern "C" fn proc_info() -> *mut c_char {
-    let info = serde_json::json!({
-        "pid": std::process::id(),
-        "uptime": 0, // difficult to get comfortably x-platform without more crates
-    });
-    string_to_ptr(info.to_string())
-}
-
-#[no_mangle]
-pub extern "C" fn proc_run(
-    command: *const c_char,
-    options_json: *const c_char,
-) -> *mut c_char {
-    let cmd = ptr_to_string(command);
-    let options_str = ptr_to_string(options_json);
-
-    let options: serde_json::Value = 
-        serde_json::from_str(&options_str).unwrap_or(serde_json::json!({}));
-    
-    let args: Vec<String> = options["args"]
-        .as_array()
-        .map(|arr| arr.iter().map(|v| v.as_str().unwrap_or("").to_string()).collect())
-        .unwrap_or_default();
-        
-    let cwd_str = options["cwd"].as_str().unwrap_or("");
-
-    // Safe cwd resolution
-    let cwd_res = if cwd_str.is_empty() {
-        std::env::current_dir()
-    } else {
-        let p = std::path::Path::new(cwd_str);
-        if p.is_absolute() {
-            Ok(p.to_path_buf())
-        } else {
-            std::env::current_dir().map(|d| d.join(p))
-        }
-    };
-
-    let cwd = match cwd_res {
-        Ok(c) => c,
-        Err(e) => return string_to_ptr(format!("ERROR: Failed to resolve CWD: {}", e)),
-    };
-
-    // Prepare command
-    let mut command = std::process::Command::new(cmd);
-    command.args(args);
-    command.current_dir(&cwd);
-    
-    // Detached background process
-    command.stdin(std::process::Stdio::null());
-    command.stdout(std::process::Stdio::null());
-    command.stderr(std::process::Stdio::null());
-
-    match command.spawn() {
-        Ok(child) => {
-            let res = serde_json::json!({
-                "ok": true,
-                "pid": child.id(),
-                "cwd": cwd
-            });
-            string_to_ptr(res.to_string())
-        }
-        Err(e) => {
-            string_to_ptr(format!("ERROR: Spawn failed: {}", e))
-        }
-    }
-}
-
-
-
-
-#[no_mangle]
-pub extern "C" fn proc_kill(pid: f64) -> bool {
-    let pid_int = pid as usize;
-    use sysinfo::{System, Pid};
-    
-    let s = System::new_all();
-    let pid = Pid::from(pid_int);
-    if let Some(process) = s.process(pid) {
-        process.kill()
-    } else {
-        false
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn proc_list() -> *mut c_char {
-    use sysinfo::{System};
-    let mut s = System::new_all();
-    s.refresh_processes();
-    
-    let processes: Vec<serde_json::Value> = s.processes().iter().map(|(pid, process)| {
-        serde_json::json!({
-            "pid": pid.as_u32(), 
-            "name": process.name(),
-            "cmd": process.cmd(),
-            "memory": process.memory(),
-            "cpu": process.cpu_usage(),
-        })
-    }).collect();
-    
-    string_to_ptr(serde_json::to_string(&processes).unwrap_or("[]".to_string()))
 }
 
 // --- Time ---
