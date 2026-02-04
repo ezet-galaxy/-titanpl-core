@@ -1,10 +1,10 @@
 {
   "name": "@titanpl/core",
   "description": "The official Core Standard Library for Titan Planet",
-  "version": "2.2.3",
-  "main": "native_entry.js",
+  "version": "2.2.4",
+  "main": "index.js",
   "native": {
-    "path": "C:/Users/clash/Desktop/@titanpl/core/titanpl-core/native/target/debug/titan_core.dll",
+    "path": "C:/Users/clash/Desktop/@titanpl/core/titanpl-core/native/target/release/titan_core.dll",
     "v8_functions": {
       "serialize": {
         "symbol": "native_serialize"
