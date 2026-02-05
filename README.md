@@ -14,29 +14,14 @@ npm install @titanpl/core
 
 ## Usage
 
-The extension automatically attaches to the Titan runtime and supports **three ways** to access its features. All methods are fully validated and safe to use.
+The extension automatically attaches to the Titan runtime.
 
-### 1. Modern ESM Import (Highly Recommended)
+### Modern ESM Import (Highly Recommended)
 Best for IDE support, autocompletion, and type checking.
 ```javascript
 import { fs, crypto, ls } from "@titanpl/core";
 
 const content = fs.readFile("config.json");
-```
-
-### 2. Titan Core Container
-Standard access via the built-in `t.core` object.
-```javascript
-const { fs, crypto } = t.core;
-
-const id = crypto.uuid();
-```
-
-### 3. Direct Global Access
-Quick-access shortcuts via the global `t` object.
-```javascript
-const content = t.fs.readFile("config.json");
-const id = t.crypto.uuid();
 ```
 
 ---

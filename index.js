@@ -165,7 +165,6 @@ const API = {
 
 // 4. Global Attachment (Side Effects)
 if (t) {
-    if (t.log) t.log(EXT_KEY, "Extension loading...");
 
     // A. Inherit into t[@titanpl/core]
     // STRATEGY: "Super-Merge" + Prototype Injection
