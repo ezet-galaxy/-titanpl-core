@@ -45,8 +45,8 @@
         "@ezetgalaxy/titan": ">=26.10.2"
     },
     "devDependencies": {
-        "esbuild": "^0.27.2",
-        "t8n-micro-gravity": "^1.0.0"
+        "@tgrv/microgravity": "^1.0.0",
+        "esbuild": "^0.27.2"
     },
     "dependencies": {
         "@titanpl/valid": "^1.1.1",
