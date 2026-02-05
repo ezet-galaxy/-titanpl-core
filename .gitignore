@@ -35,3 +35,6 @@ npm-debug.log*
 .env
 .env.local
 .env.*.local
+
+# mkctx - generated context
+mkctx/
