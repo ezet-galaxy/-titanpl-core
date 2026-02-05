@@ -4,7 +4,7 @@
   "version": "2.2.4",
   "main": "index.js",
   "native": {
-    "path": "C:/Users/clash/Desktop/@titanpl/core/titanpl-core/native/target/release/titan_core.dll",
+    "path": "/home/david/jobs/titanpl/code/titanpl-core/native/target/release/libtitan_core.so",
     "v8_functions": {
       "serialize": {
         "symbol": "native_serialize"
