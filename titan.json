@@ -1,10 +1,10 @@
 {
   "name": "@titanpl/core",
   "description": "The official Core Standard Library for Titan Planet",
-  "version": "2.2.8",
-  "main": "bootstrap.js",
+  "version": "2.4.0",
+  "main": "index.js",
   "native": {
-    "path": "/home/david/jobs/titanpl/code/titanpl-core/native/target/release/libtitan_core.so",
+    "path": "native/target/release/titan_core.dll",
     "v8_functions": {
       "serialize": {
         "symbol": "native_serialize"
