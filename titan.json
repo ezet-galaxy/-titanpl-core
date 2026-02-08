@@ -1,7 +1,7 @@
 {
   "name": "@titanpl/core",
   "description": "The official Core Standard Library for Titan Planet",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "main": "index.js",
   "native": {
     "path": "native/target/release/titan_core.dll",
